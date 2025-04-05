@@ -31,50 +31,77 @@
       </label>
     </section>
     
-    <!-- Branch Selection -->
-    <section id="branch-selection">
-      <h2>Select Transfer Branches</h2>
-      <label for="source">Source Branch:</label>
-      <select id="source">
-        <option value="A" selected>A</option>
-        <option value="B">B</option>
-      </select>
-      <label for="destination">Destination Branch:</label>
-      <select id="destination">
-        <option value="B" selected>B</option>
-        <option value="A">A</option>
-      </select>
-    </section>
-    
-    <!-- Ledgers: CBS Ledger and Token Ledger -->
+    <!-- Ledger Display -->
     <section id="simulation-panel">
       <div class="ledger" id="cbs-ledger">
         <h3>CBS Ledger (Off-chain)</h3>
-        <p>A Branch Balance: $<span id="cbs-a">1000.00</span></p>
-        <p>B Branch Balance: $<span id="cbs-b">1000.00</span></p>
+        <p>A Branch: $<span id="cbs-a">1000.00</span></p>
+        <p>B Branch: $<span id="cbs-b">1000.00</span></p>
       </div>
       <div class="ledger" id="token-ledger">
         <h3>Token Ledger (On-chain)</h3>
-        <p>A Branch Balance: $<span id="token-a">1000.00</span></p>
-        <p>B Branch Balance: $<span id="token-b">1000.00</span></p>
+        <p>A Branch: $<span id="token-a">0.00</span></p>
+        <p>B Branch: $<span id="token-b">0.00</span></p>
       </div>
     </section>
-    
-    <!-- Transfer Controls -->
+
+    <!-- Operations: Fund, Transfer, Defund -->
     <section id="controls">
-      <h2>Transfer Funds</h2>
-      <label for="amount">Amount ($):</label>
-      <input type="number" id="amount" value="100" min="1">
-      <button id="transfer-btn">Transfer</button>
+      <h2>Operations</h2>
+
+      <!-- Fund -->
+      <div class="operation-box">
+        <h3>Fund (CBS -> Token)</h3>
+        <label for="fund-branch">Branch:</label>
+        <select id="fund-branch">
+          <option value="A">A</option>
+          <option value="B">B</option>
+        </select>
+        <label for="fund-amount">Amount ($):</label>
+        <input type="number" id="fund-amount" value="100" min="1">
+        <button id="fund-btn">Fund</button>
+      </div>
+
+      <!-- Transfer -->
+      <div class="operation-box">
+        <h3>Transfer (On-chain)</h3>
+        <label for="transfer-source">Source Branch:</label>
+        <select id="transfer-source">
+          <option value="A" selected>A</option>
+          <option value="B">B</option>
+        </select>
+        <label for="transfer-dest">Destination Branch:</label>
+        <select id="transfer-dest">
+          <option value="B" selected>B</option>
+          <option value="A">A</option>
+        </select>
+        <label for="transfer-amount">Amount ($):</label>
+        <input type="number" id="transfer-amount" value="50" min="1">
+        <button id="transfer-btn">Transfer</button>
+      </div>
+
+      <!-- Defund -->
+      <div class="operation-box">
+        <h3>Defund (Token -> CBS)</h3>
+        <label for="defund-branch">Branch:</label>
+        <select id="defund-branch">
+          <option value="A">A</option>
+          <option value="B">B</option>
+        </select>
+        <label for="defund-amount">Amount ($):</label>
+        <input type="number" id="defund-amount" value="50" min="1">
+        <button id="defund-btn">Defund</button>
+      </div>
+    </section>
+
+    <!-- Reset and Log -->
+    <section>
       <button id="reset-btn">Reset</button>
     </section>
     
-    <!-- Operation Log -->
     <section id="log">
       <h2>Operation Log</h2>
-      <ul id="log-list">
-        <!-- Logs will appear here -->
-      </ul>
+      <ul id="log-list"></ul>
     </section>
   </main>
 
