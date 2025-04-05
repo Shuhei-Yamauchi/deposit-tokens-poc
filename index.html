@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deposit Tokens PoC</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>Deposit Tokens Proof of Concept</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="simulation.html">Simulation</a>
+      <a href="about.html">About</a>
+    </nav>
+  </header>
+  <main>
+    <section>
+      <h2>Overview</h2>
+      <p>This Proof of Concept demonstrates the simulation of deposit token transfers between two branches (A and B) using two models:</p>
+      <ul>
+        <li><strong>Backed Model</strong>: The Core Banking System (CBS) ledger and Blockchain (Token) ledger are separate. During a transfer, tokens are burned from the sender and minted to the receiver, while the CBS ledger is updated independently.</li>
+        <li><strong>Native Model</strong>: Both ledgers are unified; the transfer is reflected simultaneously on the single ledger.</li>
+      </ul>
+      <p>Click the button below to start the simulation.</p>
+      <a class="button" href="simulation.html">Go to Simulation</a>
+    </section>
+  </main>
+  <footer>
+    <p>&copy; 2023 Deposit Tokens PoC</p>
+  </footer>
+</body>
+</html>
