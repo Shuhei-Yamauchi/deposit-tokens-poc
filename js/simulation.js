@@ -1,247 +1,153 @@
 // js/simulation.js
 
 document.addEventListener("DOMContentLoaded", () => {
-  // 初期残高
+  // Initial Balances
   const INITIAL_BALANCE = 1000;
 
-  // CBS Ledger（オフチェーン）の残高
-  let cbs = {
+  // Off-chain CBS Ledger
+  let cbsLedger = {
     A: INITIAL_BALANCE,
     B: INITIAL_BALANCE
   };
 
-  // Token Ledger（オンチェーン）の残高
-  let token = {
+  // On-chain Token Ledger
+  let tokenLedger = {
     A: INITIAL_BALANCE,
     B: INITIAL_BALANCE
   };
 
-  // 現在のモード ("backed" or "native")
-  let currentMode = "backed";
-  let modeLocked = false; // 一度操作したらモードはロック
+  // Current model ("backed" or "native"), locked after first transfer
+  let currentModel = "backed";
+  let modelLocked = false;
 
-  // DOM取得
+  // DOM elements
   const modelRadios = document.getElementsByName("model");
-  const cbsBalAEl = document.getElementById("cbs-bal-a");
-  const cbsBalBEl = document.getElementById("cbs-bal-b");
-  const tokenBalAEl = document.getElementById("token-bal-a");
-  const tokenBalBEl = document.getElementById("token-bal-b");
+  const cbsBalAEl = document.getElementById("cbs-a");
+  const cbsBalBEl = document.getElementById("cbs-b");
+  const tokenBalAEl = document.getElementById("token-a");
+  const tokenBalBEl = document.getElementById("token-b");
 
-  // Deposit関連
-  const depositBranchEl = document.getElementById("deposit-branch");
-  const depositAmountEl = document.getElementById("deposit-amount");
-  const depositBtn = document.getElementById("deposit-btn");
+  const sourceSelect = document.getElementById("source");
+  const destinationSelect = document.getElementById("destination");
+  const amountInput = document.getElementById("amount");
 
-  // Redeem関連
-  const redeemBranchEl = document.getElementById("redeem-branch");
-  const redeemAmountEl = document.getElementById("redeem-amount");
-  const redeemBtn = document.getElementById("redeem-btn");
-
-  // Transfer関連
-  const transferSourceEl = document.getElementById("transfer-source");
-  const transferDestEl = document.getElementById("transfer-dest");
-  const transferAmountEl = document.getElementById("transfer-amount");
   const transferBtn = document.getElementById("transfer-btn");
-
   const resetBtn = document.getElementById("reset-btn");
-  const operationLogEl = document.getElementById("operation-log");
 
-  // 画面表示を更新
+  const logList = document.getElementById("log-list");
+
+  // Update displays
   function updateDisplay() {
-    // Backedモードの時：CBSとTokenは別々に表示
-    // Nativeモードの時：理論上はCBSがない(または同じLedger)想定なので、PoCでは同値にして可視化
-    if (currentMode === "native") {
-      // Nativeモードは token = official ledger. cbsは参考として同じ値を表示させる
-      cbsBalAEl.textContent = token.A.toFixed(2);
-      cbsBalBEl.textContent = token.B.toFixed(2);
-    } else {
-      // Backedモードはそれぞれ別の値を表示
-      cbsBalAEl.textContent = cbs.A.toFixed(2);
-      cbsBalBEl.textContent = cbs.B.toFixed(2);
-    }
+    // In the Backed model, we show the real CBS and Token balances as separate values.
+    // In the Native model (for demonstration), let's keep the CBS ledger static to illustrate
+    // that once funds are on-chain, the off-chain ledger is NOT updated anymore.
+    cbsBalAEl.textContent = cbsLedger.A.toFixed(2);
+    cbsBalBEl.textContent = cbsLedger.B.toFixed(2);
 
-    tokenBalAEl.textContent = token.A.toFixed(2);
-    tokenBalBEl.textContent = token.B.toFixed(2);
+    tokenBalAEl.textContent = tokenLedger.A.toFixed(2);
+    tokenBalBEl.textContent = tokenLedger.B.toFixed(2);
   }
 
-  // ログに出力
-  function log(message) {
+  // Append a log message
+  function appendLog(msg) {
     const li = document.createElement("li");
-    li.textContent = message;
-    operationLogEl.appendChild(li);
+    li.textContent = msg;
+    logList.appendChild(li);
   }
 
-  // モード選択が変更された時
+  // Model selection
   modelRadios.forEach(radio => {
     radio.addEventListener("change", () => {
-      if (modeLocked) {
-        // ロックされてたら選択無効
-        radio.checked = (radio.value === currentMode);
-        log("モードは既にロックされています。リセットするまで変更不可。");
+      if (modelLocked) {
+        // If locked, revert any change
+        radio.checked = (radio.value === currentModel);
+        appendLog("Model is already locked. Reset to change the model.");
       } else {
-        currentMode = radio.value;
-        log("モードが " + currentMode + " に切り替わりました。");
+        currentModel = radio.value;
+        appendLog(`Model changed to: ${currentModel}`);
         updateDisplay();
       }
     });
   });
 
-  // Depositボタン押下
-  depositBtn.addEventListener("click", () => {
-    const branch = depositBranchEl.value; // "A" or "B"
-    const amount = parseFloat(depositAmountEl.value);
-    if (amount <= 0 || isNaN(amount)) {
-      alert("Deposit金額が不正です");
-      return;
-    }
-    // モードロック
-    if (!modeLocked) {
-      modeLocked = true;
-      modelRadios.forEach(r => r.disabled = true);
-      log("初回操作が行われたため、モデル選択をロックしました。");
-    }
-
-    if (currentMode === "backed") {
-      // Backed:
-      // 1) オフチェーン(CBS)の該当支店に預金追加（現金を受け取りロックしたとみなす）
-      cbs[branch] += amount;
-      // 2) 同額のTokenをMint
-      token[branch] += amount;
-      log(`[Backed] Deposit: Branch ${branch} に $${amount.toFixed(2)} 入金。CBSに加算 & TokenをMint。`);
-    } else {
-      // Native:
-      // 1) 単一Ledger(token)にMint
-      token[branch] += amount;
-      // 2) オフチェーン(CBS)はないので参考表示のためだけに同期
-      log(`[Native] Deposit: Branch ${branch} に $${amount.toFixed(2)} Mint（オフチェーン不要）。`);
-    }
-    updateDisplay();
-  });
-
-  // Redeemボタン押下
-  redeemBtn.addEventListener("click", () => {
-    const branch = redeemBranchEl.value; // "A" or "B"
-    const amount = parseFloat(redeemAmountEl.value);
-    if (amount <= 0 || isNaN(amount)) {
-      alert("Redeem金額が不正です");
-      return;
-    }
-    // モードロック
-    if (!modeLocked) {
-      modeLocked = true;
-      modelRadios.forEach(r => r.disabled = true);
-      log("初回操作が行われたため、モデル選択をロックしました。");
-    }
-
-    // トークン残高が足りるか
-    if (token[branch] < amount) {
-      alert(`Branch ${branch} のトークン残高が不足しています。`);
-      return;
-    }
-
-    if (currentMode === "backed") {
-      // Backed:
-      // 1) Token LedgerからBurn
-      token[branch] -= amount;
-      // 2) オフチェーン(CBS)から預金を解放（=ユーザに現金を払い出すイメージ）
-      //   PoC簡易表現：CBS[branch]をそのまま減らす
-      if (cbs[branch] < amount) {
-        // 実際は「担保分が別勘定にロックされていた」想定だがPoCのため単純化
-        alert(`CBSのオフチェーン残高が不足。データ不整合の可能性。`);
-      }
-      cbs[branch] -= amount;
-
-      log(`[Backed] Redeem: Branch ${branch} で $${amount.toFixed(2)} Burnし、CBS残高から払い戻し。`);
-    } else {
-      // Native:
-      // 単一Ledger上からBurnするだけ
-      token[branch] -= amount;
-      log(`[Native] Redeem: Branch ${branch} で $${amount.toFixed(2)} Burn。`);
-    }
-    updateDisplay();
-  });
-
-  // Transferボタン押下
+  // Transfer button
   transferBtn.addEventListener("click", () => {
-    const source = transferSourceEl.value; // "A" or "B"
-    const dest = transferDestEl.value;     // "A" or "B"
-    const amount = parseFloat(transferAmountEl.value);
-    if (amount <= 0 || isNaN(amount)) {
-      alert("Transfer金額が不正です");
+    const source = sourceSelect.value;      // "A" or "B"
+    const destination = destinationSelect.value; // "A" or "B"
+    const amount = parseFloat(amountInput.value);
+
+    if (!amount || amount <= 0) {
+      alert("Invalid transfer amount.");
       return;
     }
-    if (source === dest) {
-      alert("同一支店への送金は不要または無効です。");
+    if (source === destination) {
+      alert("Source and destination must be different.");
       return;
     }
-    // トークン残高チェック
-    if (token[source] < amount) {
-      alert(`Source Branch ${source} のトークン残高が不足しています。`);
+    if (tokenLedger[source] < amount) {
+      alert(`Insufficient token balance in branch ${source}.`);
       return;
     }
-    // モードロック
-    if (!modeLocked) {
-      modeLocked = true;
+
+    // Lock the model after the first transfer
+    if (!modelLocked) {
+      modelLocked = true;
       modelRadios.forEach(r => r.disabled = true);
-      log("初回操作が行われたため、モデル選択をロックしました。");
+      appendLog("First transfer executed. Model locked.");
     }
 
-    if (currentMode === "backed") {
-      // BackedのTransfer: "異なる銀行(支店)"への送金は burn & mint
-      // 1) SourceでトークンBurn
-      token[source] -= amount;
-      // 2) DestinationでトークンMint
-      token[dest] += amount;
+    if (currentModel === "backed") {
+      // Backed model: off-chain and on-chain must mirror
+      // 1) Burn tokens at source
+      tokenLedger[source] -= amount;
+      // 2) Mint tokens at destination
+      tokenLedger[destination] += amount;
+      // 3) Also update the CBS ledger (off-chain)
+      cbsLedger[source] -= amount;
+      cbsLedger[destination] += amount;
 
-      // 3) オフチェーン(CBS)上も Source→Destへ移転
-      cbs[source] -= amount;
-      cbs[dest] += amount;
-
-      log(`[Backed] Transfer: $${amount.toFixed(2)} を ${source}→${dest} に送金。` +
-          `Token: Burn(${source}) & Mint(${dest})、CBSも移動。`);
+      appendLog(`[Backed] Transfer $${amount.toFixed(2)} from ${source} to ${destination}. Burn & Mint on-chain, and update CBS.`);
     } else {
-      // NativeのTransfer: 単一Ledgerで source→destへ引くだけ
-      token[source] -= amount;
-      token[dest] += amount;
-      // CBS表示はtokenと同じにする
-      log(`[Native] Transfer: $${amount.toFixed(2)} を ${source}→${dest} へ移転。 (Burn & Mint不要)`);
+      // Native model: only token ledger matters
+      // No CBS update; cbsLedger remains the same
+      tokenLedger[source] -= amount;
+      tokenLedger[destination] += amount;
+
+      appendLog(`[Native] Transfer $${amount.toFixed(2)} from ${source} to ${destination}. Off-chain ledger is not affected.`);
     }
+
     updateDisplay();
   });
 
-  // Resetボタン押下
+  // Reset button
   resetBtn.addEventListener("click", () => {
-    // 残高初期化
-    cbs.A = INITIAL_BALANCE;
-    cbs.B = INITIAL_BALANCE;
-    token.A = INITIAL_BALANCE;
-    token.B = INITIAL_BALANCE;
+    // Reset all balances
+    cbsLedger.A = INITIAL_BALANCE;
+    cbsLedger.B = INITIAL_BALANCE;
+    tokenLedger.A = INITIAL_BALANCE;
+    tokenLedger.B = INITIAL_BALANCE;
 
-    // モード/ロック解除
-    currentMode = "backed";
-    modeLocked = false;
+    // Unlock and revert to default model
+    currentModel = "backed";
+    modelLocked = false;
     modelRadios.forEach(radio => {
       radio.disabled = false;
-      radio.checked = (radio.value === "backed"); // デフォルトbackedに
+      radio.checked = (radio.value === "backed");
     });
 
-    // 入力フォームも初期化
-    depositBranchEl.value = "A";
-    depositAmountEl.value = "100";
-    redeemBranchEl.value = "A";
-    redeemAmountEl.value = "50";
-    transferSourceEl.value = "A";
-    transferDestEl.value = "B";
-    transferAmountEl.value = "100";
+    // Restore default form values
+    sourceSelect.value = "A";
+    destinationSelect.value = "B";
+    amountInput.value = "100";
 
-    // ログクリア
-    operationLogEl.innerHTML = "";
-    log("Simulation reset to initial state.");
+    // Clear log
+    logList.innerHTML = "";
+    appendLog("Simulation has been reset. Model is now unlocked.");
 
     updateDisplay();
   });
 
-  // ページ初期表示
+  // Initialize
   updateDisplay();
-  log("現在のモデル: " + currentMode + "（操作するまで変更可能）");
+  appendLog(`Current model: ${currentModel} (changeable until first transfer).`);
 });
