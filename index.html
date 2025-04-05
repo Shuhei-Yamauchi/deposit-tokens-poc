@@ -21,7 +21,7 @@
     <section>
       <h2>Overview</h2>
       <p>
-        This Proof of Concept (PoC) is built based on the whitepaper:
+        This Proof of Concept (PoC) is built based on our whitepaper:
         <a href="https://shuhei-yamauchi.github.io/deposit-tokens-comparison/" target="_blank">
           Comparison and Implementation Feasibility of Backed Deposit Tokens and Native Deposit Tokens
         </a>.
@@ -29,13 +29,14 @@
       <p>
         The whitepaper discusses two approaches for tokenizing bank deposits:
         <strong>Backed Deposit Tokens</strong> and <strong>Native Deposit Tokens</strong>.
-        This PoC demonstrates the differences in operation by simulating a transfer between two branches.
+        In real-world implementations, the chosen model typically cannot be changed mid-operation.
+        Our PoC simulates a transfer between two branches and demonstrates how the Core Banking System (CBS)
+        ledger and the Token ledger update differently depending on the model.
       </p>
       <p>
-        In the simulation, you will see two separate ledgers:
-        the Core Banking System (CBS) ledger and the Token ledger.
-        In the <em>Backed Model</em>, the two ledgers update independently via a burn/mint process,
-        whereas in the <em>Native Model</em>, the transfer is reflected in a single unified ledger.
+        In the <em>Backed Model</em>, the CBS ledger and the Token ledger are maintained separately.
+        A transfer involves burning tokens from the source and minting tokens for the destination.
+        In the <em>Native Model</em>, a single unified ledger is used so that transfers are reflected immediately.
       </p>
       <p>
         Click the button below to start the simulation.

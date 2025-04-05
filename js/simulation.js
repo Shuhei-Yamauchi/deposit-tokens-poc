@@ -21,9 +21,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
   // 現在のモード："backed" または "native"
   let currentMode = "backed";
-  let hasTransferred = false; // 送金後はモデル変更をロック
+  let modeLocked = false; // 初回送金後、モード選択はロック
 
-  // 各台帳の表示を更新する関数
+  // 各台帳の表示更新
   function updateDisplays() {
     cbsAEl.textContent = cbsLedger.A.toFixed(2);
     cbsBEl.textContent = cbsLedger.B.toFixed(2);
@@ -31,22 +31,22 @@ document.addEventListener("DOMContentLoaded", function() {
     tokenBEl.textContent = tokenLedger.B.toFixed(2);
   }
 
-  // ログにメッセージを追加する関数
+  // ログ出力
   function appendLog(message) {
     const li = document.createElement("li");
     li.textContent = message;
     logList.appendChild(li);
   }
 
-  // シミュレーションのリセット
+  // シミュレーションリセット
   function resetSimulation() {
     cbsLedger = { A: initialBalance, B: initialBalance };
     tokenLedger = { A: initialBalance, B: initialBalance };
     updateDisplays();
     logList.innerHTML = "";
     appendLog("Simulation reset to initial state.");
-    hasTransferred = false;
-    // モード選択を有効化し、デフォルトはBackedに戻す
+    modeLocked = false;
+    // モード選択を有効化し、デフォルトは "backed" に戻す
     modelRadios.forEach(radio => {
       radio.disabled = false;
       if (radio.value === "backed") {
@@ -54,25 +54,25 @@ document.addEventListener("DOMContentLoaded", function() {
         currentMode = "backed";
       }
     });
-    // 送金元と送金先の選択を初期値に戻す
+    // 送金元・送金先も初期値に戻す
     sourceSelect.value = "A";
     destinationSelect.value = "B";
     appendLog("Current Mode: " + currentMode);
   }
 
-  // モード切替処理（送金前のみ変更可能）
+  // モード切替処理（送金前のみ可能）
   modelRadios.forEach(radio => {
     radio.addEventListener("change", function() {
-      if (hasTransferred) {
-        // すでに送金済みの場合、変更を許可しない
+      if (modeLocked) {
+        // 送金後はモード変更不可
         this.checked = (this.value === currentMode);
         appendLog("Mode change not allowed after first transfer. Please Reset first.");
         return;
       }
       currentMode = this.value;
       appendLog("Switched mode to: " + currentMode);
-      // Native モードなら、Token LedgerはCBS Ledgerと同一になる
       if (currentMode === "native") {
+        // NativeモードではToken Ledgerは常にCBS Ledgerと同一
         tokenLedger.A = cbsLedger.A;
         tokenLedger.B = cbsLedger.B;
         updateDisplays();
@@ -87,54 +87,48 @@ document.addEventListener("DOMContentLoaded", function() {
       alert("Please enter a valid amount.");
       return;
     }
-    // 送金元と送金先を取得
     let source = sourceSelect.value;
     let destination = destinationSelect.value;
     if (source === destination) {
       alert("Source and Destination must be different.");
       return;
     }
-    // 送金元に十分な資金があるかチェック
     if (cbsLedger[source] < amount) {
       alert(`Insufficient funds in ${source} branch.`);
       return;
     }
 
-    // 送金処理
     if (currentMode === "backed") {
-      // CBS Ledger: 送金元から引き落とし、送金先へ加算
+      // Backed モード：CBS Ledgerの更新
       cbsLedger[source] -= amount;
       cbsLedger[destination] += amount;
       appendLog(`CBS Ledger updated: ${source} -$${amount.toFixed(2)}, ${destination} +$${amount.toFixed(2)}`);
-      // Token Ledger: 送金元からのトークンをburnし、送金先へmint
+      
+      // Token Ledger：Burn と Mint を分けて実行
       tokenLedger[source] -= amount;
+      appendLog(`Token Ledger: Burn executed on ${source} for $${amount.toFixed(2)}`);
       tokenLedger[destination] += amount;
-      appendLog(`Token Ledger updated (burn & mint): ${source} -$${amount.toFixed(2)}, ${destination} +$${amount.toFixed(2)}`);
+      appendLog(`Token Ledger: Mint executed for ${destination} for $${amount.toFixed(2)}`);
     } else if (currentMode === "native") {
-      // Nativeモード: 単一の台帳として更新
+      // Native モード：単一の台帳として同時更新
       cbsLedger[source] -= amount;
       cbsLedger[destination] += amount;
-      // Token LedgerはCBS Ledgerと同一
       tokenLedger[source] = cbsLedger[source];
       tokenLedger[destination] = cbsLedger[destination];
       appendLog(`Native Ledger updated: ${source} -$${amount.toFixed(2)}, ${destination} +$${amount.toFixed(2)}`);
     }
     updateDisplays();
 
-    // 初回の送金後は、モード選択と分岐選択をロック
-    if (!hasTransferred) {
-      hasTransferred = true;
+    // 初回送金後、モード選択はロック（送金元・送金先は変更可能）
+    if (!modeLocked) {
+      modeLocked = true;
       modelRadios.forEach(r => r.disabled = true);
-      sourceSelect.disabled = true;
-      destinationSelect.disabled = true;
-      appendLog("Model and branch selection are now locked. Use Reset to change.");
+      appendLog("Mode selection locked after first transfer. You can still change the source and destination branches.");
     }
   });
 
-  // リセットボタン処理
   resetBtn.addEventListener("click", resetSimulation);
 
-  // 初期状態の表示
   updateDisplays();
   appendLog("Current Mode: " + currentMode);
 });
