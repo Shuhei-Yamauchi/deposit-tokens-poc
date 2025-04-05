@@ -21,29 +21,24 @@
     <section>
       <h2>Overview</h2>
       <p>
-        This Proof of Concept (PoC) is based on the following whitepaper:
+        This Proof of Concept (PoC) is built based on the whitepaper:
         <a href="https://shuhei-yamauchi.github.io/deposit-tokens-comparison/" target="_blank">
-          <strong>Comparison and Implementation Feasibility of Backed Deposit Tokens and Native Deposit Tokens</strong>
+          Comparison and Implementation Feasibility of Backed Deposit Tokens and Native Deposit Tokens
         </a>.
       </p>
       <p>
-        The whitepaper discusses two main approaches to tokenizing bank deposits:
-        <em>Backed Deposit Tokens</em> and <em>Native Deposit Tokens</em>.
-        We built this PoC to illustrate how these two models differ in practice.
-        By interacting with the simulation, you can see how the Core Banking System (CBS) ledger
-        and the Token ledger behave in each model.
+        The whitepaper discusses two approaches for tokenizing bank deposits:
+        <strong>Backed Deposit Tokens</strong> and <strong>Native Deposit Tokens</strong>.
+        This PoC demonstrates the differences in operation by simulating a transfer between two branches.
       </p>
       <p>
-        <strong>Backed Model:</strong> The CBS ledger and the Token ledger are maintained separately.
-        Transfers involve burning tokens from the sender and minting them for the receiver,
-        while the CBS ledger is updated independently.
+        In the simulation, you will see two separate ledgers:
+        the Core Banking System (CBS) ledger and the Token ledger.
+        In the <em>Backed Model</em>, the two ledgers update independently via a burn/mint process,
+        whereas in the <em>Native Model</em>, the transfer is reflected in a single unified ledger.
       </p>
       <p>
-        <strong>Native Model:</strong> A single unified ledger is used, so transfers are reflected
-        simultaneously without needing separate burn/mint steps.
-      </p>
-      <p>
-        Please proceed to the Simulation page to try it out.
+        Click the button below to start the simulation.
       </p>
       <a class="button" href="simulation.html">Go to Simulation</a>
     </section>

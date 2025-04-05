@@ -19,16 +19,22 @@
 
   <main>
     <section>
-      <h2>What is This Project?</h2>
+      <h2>Project Overview</h2>
       <p>
-        This project is a Proof of Concept (PoC) for demonstrating how deposit tokens could work under
-        Backed and Native models. It does not connect to any real banking system or blockchain network;
-        everything is simulated in the browser using client-side JavaScript.
+        This project is a Proof of Concept (PoC) demonstrating how deposit tokens work under two models:
+        <strong>Backed</strong> and <strong>Native</strong>.
       </p>
       <p>
-        For more theoretical background, please refer to the 
+        In the <em>Backed Model</em>, the Core Banking System (CBS) ledger and the Blockchain (Token) ledger are separate.
+        Transfers involve burning tokens from the source branch and minting tokens for the destination branch, while the CBS ledger is updated independently.
+      </p>
+      <p>
+        In the <em>Native Model</em>, both ledgers are unified so that transfers are reflected immediately and atomically.
+      </p>
+      <p>
+        For more detailed background, please refer to our whitepaper:
         <a href="https://shuhei-yamauchi.github.io/deposit-tokens-comparison/" target="_blank">
-          comparison whitepaper
+          Deposit Tokens Comparison and Implementation Feasibility
         </a>.
       </p>
     </section>
@@ -38,7 +44,7 @@
       <p>
         If you have any requests, suggestions, or bug reports, please open an
         <a href="https://github.com/Shuhei-Yamauchi/deposit-tokens-poc/issues" target="_blank">Issue</a>
-        in the GitHub repository. We welcome feedback and ideas to improve this PoC.
+        in the GitHub repository. We welcome your feedback and ideas to help improve this PoC.
       </p>
     </section>
   </main>
