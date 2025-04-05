@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="description" content="Deposit Tokens PoC - Home">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Deposit Tokens PoC</title>
+  <title>Deposit Tokens PoC - Home</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -15,20 +16,41 @@
       <a href="about.html">About</a>
     </nav>
   </header>
+
   <main>
     <section>
       <h2>Overview</h2>
-      <p>This Proof of Concept demonstrates the simulation of deposit token transfers between two branches (A and B) using two models:</p>
-      <ul>
-        <li><strong>Backed Model</strong>: The Core Banking System (CBS) ledger and Blockchain (Token) ledger are separate. During a transfer, tokens are burned from the sender and minted to the receiver, while the CBS ledger is updated independently.</li>
-        <li><strong>Native Model</strong>: Both ledgers are unified; the transfer is reflected simultaneously on the single ledger.</li>
-      </ul>
-      <p>Click the button below to start the simulation.</p>
+      <p>
+        This Proof of Concept (PoC) is based on the following whitepaper:
+        <a href="https://shuhei-yamauchi.github.io/deposit-tokens-comparison/" target="_blank">
+          <strong>Comparison and Implementation Feasibility of Backed Deposit Tokens and Native Deposit Tokens</strong>
+        </a>.
+      </p>
+      <p>
+        The whitepaper discusses two main approaches to tokenizing bank deposits:
+        <em>Backed Deposit Tokens</em> and <em>Native Deposit Tokens</em>.
+        We built this PoC to illustrate how these two models differ in practice.
+        By interacting with the simulation, you can see how the Core Banking System (CBS) ledger
+        and the Token ledger behave in each model.
+      </p>
+      <p>
+        <strong>Backed Model:</strong> The CBS ledger and the Token ledger are maintained separately.
+        Transfers involve burning tokens from the sender and minting them for the receiver,
+        while the CBS ledger is updated independently.
+      </p>
+      <p>
+        <strong>Native Model:</strong> A single unified ledger is used, so transfers are reflected
+        simultaneously without needing separate burn/mint steps.
+      </p>
+      <p>
+        Please proceed to the Simulation page to try it out.
+      </p>
       <a class="button" href="simulation.html">Go to Simulation</a>
     </section>
   </main>
+
   <footer>
-    <p>&copy; 2023 Deposit Tokens PoC</p>
+    <p>&copy; 2025 Deposit Tokens PoC</p>
   </footer>
 </body>
 </html>
