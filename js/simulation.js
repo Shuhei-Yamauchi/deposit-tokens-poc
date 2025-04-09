@@ -3,11 +3,11 @@
 document.addEventListener("DOMContentLoaded", function() {
   // 初期値設定
   const initialBalance = 1000;
-  // CBS Ledgerは各Branch1000、Token Ledgerは初期状態は0（FUNDで移動）
+  // 初期状態：CBS台帳は各1000、Token台帳は初期状態では0（FUND操作前）
   let cbsLedger = { A: initialBalance, B: initialBalance };
   let tokenLedger = { A: 0, B: 0 };
 
-  // DOM要素の取得
+  // DOM 要素の取得
   const cbsAEl = document.getElementById("cbs-a");
   const cbsBEl = document.getElementById("cbs-b");
   const tokenAEl = document.getElementById("token-a");
@@ -50,23 +50,23 @@ document.addEventListener("DOMContentLoaded", function() {
     logList.appendChild(li);
   }
 
-  // 台帳ごとの総計ログを出力（両台帳は別表現なので、合算しない）
+  // 各台帳の総計をログ出力（各台帳は別表現なので合算はしない）
   function logTotals() {
     const totalCBS = cbsLedger.A + cbsLedger.B;
     const totalToken = tokenLedger.A + tokenLedger.B;
     appendLog(`Total in CBS Ledger: $${totalCBS.toFixed(2)} | Total in Token Ledger: $${totalToken.toFixed(2)}`);
   }
 
-  // 初回操作でモデルロック
+  // モデル変更をロックする（初回操作後）
   function lockModelIfNeeded() {
     if (!modeLocked) {
       modeLocked = true;
-      Array.from(modelRadios).forEach(r => (r.disabled = true));
+      Array.from(modelRadios).forEach(r => r.disabled = true);
       appendLog("First operation executed. Model is now locked.");
     }
   }
 
-  // FUND操作: CBS → Token
+  // FUND 操作 (CBS → Token)
   fundBtn.addEventListener("click", () => {
     const branch = fundBranchEl.value; // "A" or "B"
     const amount = parseFloat(fundAmountEl.value);
@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     lockModelIfNeeded();
 
-    // CBSからTokenへ移動：CBS減少、Token増加
+    // FUND：CBS台帳から減少し、Token台帳へ加算
     cbsLedger[branch] -= amount;
     tokenLedger[branch] += amount;
     appendLog(`[Fund] Moved $${amount.toFixed(2)} from CBS(${branch}) to Token(${branch}). (Model: ${currentModel})`);
@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", function() {
     logTotals();
   });
 
-  // TRANSFER操作: Token上で送金（バックド型はCBSも更新、Native型はTokenのみ更新）
+  // TRANSFER 操作 (Token上で送金)
   transferBtn.addEventListener("click", () => {
     const amount = parseFloat(transferAmountEl.value);
     if (isNaN(amount) || amount <= 0) {
@@ -108,33 +108,31 @@ document.addEventListener("DOMContentLoaded", function() {
     lockModelIfNeeded();
 
     if (currentModel === "backed") {
-      // Backed モード：Token台帳でBurn/Mint、さらにCBS台帳の更新も反映
-      // CBS台帳更新
+      // Backed モード
+      // CBS台帳更新：送金元から減少、送金先に加算
       cbsLedger[source] -= amount;
       cbsLedger[destination] += amount;
       appendLog(`CBS Ledger updated: ${source} -$${amount.toFixed(2)}, ${destination} +$${amount.toFixed(2)}`);
 
-      // Token台帳更新：Burn操作
+      // Token台帳更新：Burn & Mint
       tokenLedger[source] -= amount;
       appendLog(`Token Ledger: Burn executed on ${source} for $${amount.toFixed(2)}`);
-      // Token台帳更新：Mint操作
       tokenLedger[destination] += amount;
       appendLog(`Token Ledger: Mint executed for ${destination} for $${amount.toFixed(2)}`);
     } else if (currentModel === "native") {
-      // Native モード：Token台帳のみ更新（CBS台帳は変更しない）
+      // Native モード：Token台帳のみ更新。CBS台帳はそのまま（初期状態の場合は変化なし）
       tokenLedger[source] -= amount;
       tokenLedger[destination] += amount;
       appendLog(`Native Transfer executed: ${source} -$${amount.toFixed(2)}, ${destination} +$${amount.toFixed(2)} (CBS Ledger remains unchanged)`);
     }
-
     updateDisplays();
     logTotals();
   });
 
-  // DEFUND操作: Token → CBS
+  // DEFUND 操作 (Token → CBS)
   defundBtn.addEventListener("click", () => {
-    const branch = document.getElementById("defund-branch").value;
-    const amount = parseFloat(document.getElementById("defund-amount").value);
+    const branch = defundBranchEl.value;
+    const amount = parseFloat(defundAmountEl.value);
     if (isNaN(amount) || amount <= 0) {
       alert("Invalid amount for Defund.");
       return;
@@ -145,7 +143,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     lockModelIfNeeded();
 
-    // Token台帳から資金を減らし、CBS台帳に加算
+    // DEFUND：Token台帳から減少し、CBS台帳へ加算
     tokenLedger[branch] -= amount;
     cbsLedger[branch] += amount;
     appendLog(`[Defund] Moved $${amount.toFixed(2)} from Token(${branch}) to CBS(${branch}). (Model: ${currentModel})`);
@@ -153,7 +151,7 @@ document.addEventListener("DOMContentLoaded", function() {
     logTotals();
   });
 
-  // モデル変更処理（送金前のみ可能）
+  // モデル変更処理（送金前のみ許可）
   Array.from(modelRadios).forEach(radio => {
     radio.addEventListener("change", function() {
       if (modeLocked) {
@@ -164,24 +162,27 @@ document.addEventListener("DOMContentLoaded", function() {
       currentModel = this.value;
       appendLog(`Model changed to: ${currentModel}`);
       if (currentModel === "native") {
-        // Native モード：Token台帳は現在のCBS台帳と同一（FUND等が実施されている場合）
-        tokenLedger.A = cbsLedger.A;
-        tokenLedger.B = cbsLedger.B;
-        updateDisplays();
+        // Native モードの場合は、もしToken台帳が既に資金移動されているなら同期する
+        if ((tokenLedger.A + tokenLedger.B) > 0) {
+          tokenLedger.A = cbsLedger.A;
+          tokenLedger.B = cbsLedger.B;
+          appendLog("Native model: Token ledger synchronized with CBS ledger.");
+          updateDisplays();
+        } else {
+          appendLog("Native model selected; however, no funds in Token ledger, so no synchronization performed.");
+        }
       }
     });
   });
 
-  // RESET操作
+  // RESET 操作
   resetBtn.addEventListener("click", () => {
-    // Reset各台帳
     cbsLedger = { A: initialBalance, B: initialBalance };
-    tokenLedger = { A: 0, B: 0 }; // Token台帳はリセット時は0
+    tokenLedger = { A: 0, B: 0 };  // Token台帳は初期状態は0
     updateDisplays();
     logList.innerHTML = "";
     appendLog("Simulation reset to initial state.");
     modeLocked = false;
-    // モデル選択を有効化（デフォルトは backed）
     Array.from(modelRadios).forEach(radio => {
       radio.disabled = false;
       if (radio.value === "backed") {
@@ -189,14 +190,15 @@ document.addEventListener("DOMContentLoaded", function() {
         currentModel = "backed";
       }
     });
-    // 各操作入力の初期値もリセット
+    sourceSelect.value = "A";
+    destinationSelect.value = "B";
     fundBranchEl.value = "A";
     fundAmountEl.value = 100;
     transferSourceEl.value = "A";
     transferDestEl.value = "B";
     transferAmountEl.value = 50;
-    document.getElementById("defund-branch").value = "A";
-    document.getElementById("defund-amount").value = 50;
+    defundBranchEl.value = "A";
+    defundAmountEl.value = 50;
     appendLog("Current Model: " + currentModel);
     logTotals();
   });
