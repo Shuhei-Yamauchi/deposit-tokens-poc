@@ -35,9 +35,9 @@ This Proof of Concept (PoC) simulates the transfer of deposit tokens between two
 - Detailed logging and analytics.
 
 ## How to Use
-1. Open the [Simulation Page](./simulation.html) on GitHub Pages.
-2. Select a model (Backed or Native).
-3. Enter the transfer amount (default is \$100).
-4. Click the "Transfer" button to simulate a transfer from A Branch to B Branch.
-5. Observe the changes in the CBS Ledger and Token Ledger panels.
-6. Use the "Reset" button to reset the simulation to its initial state.
+1. Open the [Simulation Page](https://shuhei-yamauchi.github.io/deposit-tokens-poc/simulation.html) on GitHub Pages.  
+2. Select a model (Backed or Native).  
+3. Enter the transfer amount (default is \$100).  
+4. Click the "Transfer" button to simulate a transfer from A Branch to B Branch.  
+5. Observe the changes in the CBS Ledger and Token Ledger panels.  
+6. Use the "Reset" button to reset the simulation to its initial state.  
